@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
@@ -15,16 +15,27 @@ type Props = {
   activeSlug?: string;
 };
 
+const COLUMN_COUNT = 3;
+
+function packColumns(items: MediaItem[], cols: number) {
+  const heights = new Array(cols).fill(0);
+  const buckets: MediaItem[][] = Array.from({ length: cols }, () => []);
+  for (const item of items) {
+    const ratio = item.height / item.width;
+    let shortest = 0;
+    for (let i = 1; i < cols; i++) {
+      if (heights[i] < heights[shortest]) shortest = i;
+    }
+    buckets[shortest].push(item);
+    heights[shortest] += ratio;
+  }
+  return buckets;
+}
+
 export function MasonryGallery({ items, albums, activeSlug }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const columns = useMemo(() => {
-    const cols: MediaItem[][] = [[], [], []];
-    items.forEach((item, i) => {
-      cols[i % 3].push(item);
-    });
-    return cols;
-  }, [items]);
+  const columns = useMemo(() => packColumns(items, COLUMN_COUNT), [items]);
 
   return (
     <div className="container-editorial pb-24">
@@ -107,7 +118,6 @@ export function MasonryGallery({ items, albums, activeSlug }: Props) {
 }
 
 function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
-  const aspect = item.height / item.width;
   return (
     <motion.button
       type="button"
@@ -129,33 +139,21 @@ function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
           quality={90}
           className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.03]"
         />
-      ) : item.poster ? (
-        <Image
-          src={item.poster}
-          alt={item.alt ?? item.name}
-          fill
-          sizes="(min-width: 768px) 33vw, 100vw"
-          quality={90}
-          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.03]"
-        />
       ) : (
-        <div
-          className="absolute inset-0 bg-black"
-          style={{ aspectRatio: 1 / aspect }}
-        />
+        <VideoTile item={item} />
       )}
 
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
       />
 
       {item.type === "video" && (
         <span
           aria-hidden
-          className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 backdrop-blur-sm px-3 py-1 text-[10px] tracking-[0.2em] text-white font-display"
+          className="absolute top-3 right-3 inline-flex items-center justify-center h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         >
-          <Play className="h-3 w-3" /> VIDEO
+          <Play className="h-3 w-3 translate-x-[1px]" strokeWidth={1.5} />
         </span>
       )}
 
@@ -165,5 +163,62 @@ function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
         </span>
       </span>
     </motion.button>
+  );
+}
+
+function VideoTile({ item }: { item: MediaItem }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [posterVisible, setPosterVisible] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(video);
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduce.matches) io.disconnect();
+
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <>
+      {item.poster && posterVisible && (
+        <Image
+          src={item.poster}
+          alt=""
+          aria-hidden
+          fill
+          sizes="(min-width: 768px) 33vw, 100vw"
+          quality={85}
+          className="object-cover"
+        />
+      )}
+      <video
+        ref={videoRef}
+        src={item.src}
+        poster={item.poster}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={item.alt ?? item.name}
+        onPlaying={() => setPosterVisible(false)}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.03]"
+      />
+    </>
   );
 }

@@ -60,6 +60,8 @@ export const albums: Album[] = [
 const U = (id: string, w = 1600, q = 90) =>
   `https://images.unsplash.com/${id}?w=${w}&q=${q}&auto=format&fit=max`;
 
+const GCS = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample";
+
 export const media: MediaItem[] = [
   {
     id: "m1",
@@ -240,6 +242,50 @@ export const media: MediaItem[] = [
     alt: "Candid joyful moment caught in soft afternoon light.",
     width: 1600,
     height: 1067,
+  },
+  {
+    id: "v1",
+    albumId: "motion",
+    type: "video",
+    src: `${GCS}/ForBiggerBlazes.mp4`,
+    poster: U("photo-1519741497674-611481863552"),
+    name: "Film Loop — Warmth",
+    alt: "Short motion loop — warm editorial styling.",
+    width: 1600,
+    height: 1067,
+  },
+  {
+    id: "v2",
+    albumId: "lifestyle",
+    type: "video",
+    src: `${GCS}/ForBiggerEscapes.mp4`,
+    poster: U("photo-1524504388940-b1c1722653e1"),
+    name: "Travel Reel",
+    alt: "Motion loop from an editorial travel story.",
+    width: 1600,
+    height: 2400,
+  },
+  {
+    id: "v3",
+    albumId: "editorial",
+    type: "video",
+    src: `${GCS}/ForBiggerJoyrides.mp4`,
+    poster: U("photo-1492633423870-43d1cd2775eb"),
+    name: "Golden Motion",
+    alt: "Golden-hour motion loop.",
+    width: 1600,
+    height: 1067,
+  },
+  {
+    id: "v4",
+    albumId: "beauty",
+    type: "video",
+    src: `${GCS}/ForBiggerMeltdowns.mp4`,
+    poster: U("photo-1534528741775-53994a69daeb"),
+    name: "Beauty In Motion",
+    alt: "Close beauty loop with soft focus.",
+    width: 1600,
+    height: 2400,
   },
 ];
 
