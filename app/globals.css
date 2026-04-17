@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette — warm editorial */
+  --color-bg: #f5f0eb;
+  --color-bg-card: #ffffff;
+  --color-surface: #faf6f2;
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #6b6b6b;
+  --color-border: #e0dbd5;
+  --color-accent: #1a1a1a;
+  --color-danger: #b91c1c;
+
+  /* Shorthands used throughout the app */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+
+  /* Typography */
+  --font-display: var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif;
+  --font-serif: var(--font-eb-garamond), "EB Garamond", Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Motion */
+  --ease-editorial: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --header-h: 80px;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-serif);
+    font-feature-settings: "ss01", "liga";
+    background: var(--color-bg);
+    color: var(--color-ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+    font-weight: 400;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  img,
+  video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-bg);
+  }
+
+  /* Skip link */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--color-ink);
+    color: var(--color-bg);
+    padding: 8px 16px;
+    font-family: var(--font-display);
+    letter-spacing: 0.1em;
+    z-index: 1000;
+    transition: top 0.2s var(--ease-editorial);
+  }
+  .skip-link:focus {
+    top: 16px;
+    outline: 2px solid var(--color-bg);
+    outline-offset: 2px;
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-muted);
+  }
+}
+
+@layer utilities {
+  .container-editorial {
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  .text-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
