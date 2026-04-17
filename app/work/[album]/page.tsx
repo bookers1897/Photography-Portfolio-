@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { albums, getAlbumBySlug, getMediaForAlbum } from "@/lib/portfolio";
+import {
+  getAlbumBySlug,
+  getAllAlbums,
+  getMediaForAlbum,
+} from "@/lib/portfolio";
 import { MasonryGallery } from "@/components/masonry-gallery";
 
 type Params = Promise<{ album: string }>;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const albums = await getAllAlbums();
   return albums.map((a) => ({ album: a.slug }));
 }
 
@@ -15,7 +20,7 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { album } = await params;
-  const found = getAlbumBySlug(album);
+  const found = await getAlbumBySlug(album);
   if (!found) return { title: "Album" };
   return {
     title: found.name,
@@ -25,10 +30,13 @@ export async function generateMetadata({
 
 export default async function AlbumPage({ params }: { params: Params }) {
   const { album } = await params;
-  const found = getAlbumBySlug(album);
+  const [found, albums] = await Promise.all([
+    getAlbumBySlug(album),
+    getAllAlbums(),
+  ]);
   if (!found) notFound();
 
-  const items = getMediaForAlbum(found.slug);
+  const items = await getMediaForAlbum(found.slug);
 
   return (
     <>

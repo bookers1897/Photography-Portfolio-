@@ -1,321 +1,160 @@
-export type Album = {
+import "server-only";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { storagePublicUrl } from "@/lib/utils";
+import type { Album, MediaItem } from "@/lib/brand";
+
+export { brand } from "@/lib/brand";
+export type { Album, MediaItem } from "@/lib/brand";
+
+function isSupabaseConfigured() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
+}
+
+type AlbumRow = {
   id: string;
   slug: string;
   name: string;
-  description?: string;
-  cover?: string;
+  description: string | null;
+  position: number;
+  cover_media_id: string | null;
+  cover?: { storage_path: string | null } | null;
 };
 
-export type MediaItem = {
+type MediaRow = {
   id: string;
-  albumId: string;
+  album_id: string;
   type: "image" | "video";
-  src: string;
-  poster?: string;
+  storage_path: string;
+  poster_path: string | null;
   name: string;
+  alt: string | null;
   width: number;
   height: number;
-  alt?: string;
+  position: number;
+  album?: { slug: string } | null;
 };
 
-export const albums: Album[] = [
-  {
-    id: "editorial",
-    slug: "editorial",
-    name: "Editorial",
-    description: "Magazine-ready narratives and signature looks.",
-  },
-  {
-    id: "beauty",
-    slug: "beauty",
-    name: "Beauty",
-    description: "Skin, light, and intimate detail.",
-  },
-  {
-    id: "lifestyle",
-    slug: "lifestyle",
-    name: "Lifestyle",
-    description: "Real moments, cinematic light.",
-  },
-  {
-    id: "portraits",
-    slug: "portraits",
-    name: "Portraits",
-    description: "People, presence, and personality.",
-  },
-  {
-    id: "commissioned",
-    slug: "commissioned",
-    name: "Commissioned",
-    description: "Campaign and brand work.",
-  },
-  {
-    id: "motion",
-    slug: "motion",
-    name: "Motion",
-    description: "Short-form video and cinematic clips.",
-  },
-];
-
-const U = (id: string, w = 1600, q = 90) =>
-  `https://images.unsplash.com/${id}?w=${w}&q=${q}&auto=format&fit=max`;
-
-const GCS = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample";
-
-export const media: MediaItem[] = [
-  {
-    id: "m1",
-    albumId: "editorial",
-    type: "image",
-    src: U("photo-1504703395950-b89145a5425b"),
-    name: "Monarch Portrait",
-    alt: "Woman with soft wind-swept hair against a sunlit backdrop.",
-    width: 1600,
-    height: 1066,
-  },
-  {
-    id: "m2",
-    albumId: "beauty",
-    type: "image",
-    src: U("photo-1519741497674-611481863552"),
-    name: "Wedding Flowers",
-    alt: "A bouquet of pastel flowers held against a neutral dress.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m3",
-    albumId: "lifestyle",
-    type: "image",
-    src: U("photo-1529626455594-4ff0802cfb7e"),
-    name: "Desert Sunset",
-    alt: "Warm desert light over a lone figure walking across sand.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m4",
-    albumId: "editorial",
-    type: "image",
-    src: U("photo-1531746020798-e6953c6e8e04"),
-    name: "Close-up Beauty",
-    alt: "Close portrait capturing freckles and soft natural light.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m5",
-    albumId: "commissioned",
-    type: "image",
-    src: U("photo-1524504388940-b1c1722653e1"),
-    name: "Fashion Portrait",
-    alt: "Editorial fashion portrait with sculptural fabric.",
-    width: 1600,
-    height: 2400,
-  },
-  {
-    id: "m6",
-    albumId: "portraits",
-    type: "image",
-    src: U("photo-1488161628813-04466f872be2"),
-    name: "Couple Session",
-    alt: "Intimate portrait of a couple laughing in golden light.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m7",
-    albumId: "beauty",
-    type: "image",
-    src: U("photo-1494790108377-be9c29b29330"),
-    name: "Warm Portrait",
-    alt: "Warm-toned portrait against a soft neutral wall.",
-    width: 1600,
-    height: 1600,
-  },
-  {
-    id: "m8",
-    albumId: "lifestyle",
-    type: "image",
-    src: U("photo-1503342217505-b0a15ec3261c"),
-    name: "Urban Editorial",
-    alt: "Figure against architectural light in an urban setting.",
-    width: 1600,
-    height: 2400,
-  },
-  {
-    id: "m9",
-    albumId: "portraits",
-    type: "image",
-    src: U("photo-1517841905240-472988babdf9"),
-    name: "Studio Shot",
-    alt: "Clean studio portrait with sculpted shadows.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m10",
-    albumId: "beauty",
-    type: "image",
-    src: U("photo-1602233158242-3ba0ac4d2167"),
-    name: "Glow Skin",
-    alt: "Macro beauty shot highlighting skin texture and glow.",
-    width: 1600,
-    height: 2000,
-  },
-  {
-    id: "m11",
-    albumId: "editorial",
-    type: "image",
-    src: U("photo-1492633423870-43d1cd2775eb"),
-    name: "Golden Hour",
-    alt: "Subject silhouetted against golden-hour sunlight.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m12",
-    albumId: "commissioned",
-    type: "image",
-    src: U("photo-1519345182560-3f2917c472ef"),
-    name: "Brand Campaign",
-    alt: "Commercial campaign still with model and product.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m13",
-    albumId: "beauty",
-    type: "image",
-    src: U("photo-1534528741775-53994a69daeb"),
-    name: "Beauty Close-Up",
-    alt: "Close beauty portrait with natural bronze tones.",
-    width: 1600,
-    height: 2400,
-  },
-  {
-    id: "m14",
-    albumId: "lifestyle",
-    type: "image",
-    src: U("photo-1483985988355-763728e1935b"),
-    name: "Street Style",
-    alt: "Street-style editorial caught mid-stride.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m15",
-    albumId: "commissioned",
-    type: "image",
-    src: U("photo-1469334031218-e382a71b716b"),
-    name: "Outdoor Session",
-    alt: "Outdoor editorial session amid soft greenery.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m16",
-    albumId: "portraits",
-    type: "image",
-    src: U("photo-1509631179647-0177331693ae"),
-    name: "Fashion Studio",
-    alt: "Fashion studio portrait with painterly light.",
-    width: 1600,
-    height: 2400,
-  },
-  {
-    id: "m17",
-    albumId: "editorial",
-    type: "image",
-    src: U("photo-1512361436605-a484bdb34b5f"),
-    name: "Film Editorial",
-    alt: "Film-toned editorial with cinematic grain.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "m18",
-    albumId: "lifestyle",
-    type: "image",
-    src: U("photo-1488426862026-3ee34a7d66df"),
-    name: "Joy Portrait",
-    alt: "Candid joyful moment caught in soft afternoon light.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "v1",
-    albumId: "motion",
-    type: "video",
-    src: `${GCS}/ForBiggerBlazes.mp4`,
-    poster: U("photo-1519741497674-611481863552"),
-    name: "Film Loop — Warmth",
-    alt: "Short motion loop — warm editorial styling.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "v2",
-    albumId: "lifestyle",
-    type: "video",
-    src: `${GCS}/ForBiggerEscapes.mp4`,
-    poster: U("photo-1524504388940-b1c1722653e1"),
-    name: "Travel Reel",
-    alt: "Motion loop from an editorial travel story.",
-    width: 1600,
-    height: 2400,
-  },
-  {
-    id: "v3",
-    albumId: "editorial",
-    type: "video",
-    src: `${GCS}/ForBiggerJoyrides.mp4`,
-    poster: U("photo-1492633423870-43d1cd2775eb"),
-    name: "Golden Motion",
-    alt: "Golden-hour motion loop.",
-    width: 1600,
-    height: 1067,
-  },
-  {
-    id: "v4",
-    albumId: "beauty",
-    type: "video",
-    src: `${GCS}/ForBiggerMeltdowns.mp4`,
-    poster: U("photo-1534528741775-53994a69daeb"),
-    name: "Beauty In Motion",
-    alt: "Close beauty loop with soft focus.",
-    width: 1600,
-    height: 2400,
-  },
-];
-
-export function getMediaForAlbum(slug: string | null): MediaItem[] {
-  if (!slug || slug === "all") return media;
-  const album = albums.find((a) => a.slug === slug);
-  if (!album) return [];
-  return media.filter((m) => m.albumId === album.id);
+function rowToAlbum(row: AlbumRow): Album {
+  const coverPath = row.cover?.storage_path ?? null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description ?? undefined,
+    cover: coverPath ? storagePublicUrl(coverPath) : undefined,
+  };
 }
 
-export function getAlbumBySlug(slug: string): Album | undefined {
-  return albums.find((a) => a.slug === slug);
+function rowToMedia(row: MediaRow): MediaItem {
+  return {
+    id: row.id,
+    albumId: row.album_id,
+    albumSlug: row.album?.slug,
+    type: row.type,
+    src: storagePublicUrl(row.storage_path),
+    poster: row.poster_path ? storagePublicUrl(row.poster_path) : undefined,
+    name: row.name,
+    alt: row.alt ?? undefined,
+    width: row.width,
+    height: row.height,
+  };
 }
 
-export const heroImage: MediaItem = {
-  id: "hero",
-  albumId: "editorial",
-  type: "image",
-  src: U("photo-1504703395950-b89145a5425b", 2400, 95),
-  name: "Book & Capture hero",
-  alt: "Featured editorial portrait in warm natural light.",
-  width: 2400,
-  height: 1600,
-};
+export async function getAllAlbums(): Promise<Album[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("albums")
+      .select(
+        "id, slug, name, description, position, cover_media_id, cover:media!albums_cover_media_id_fkey(storage_path)",
+      )
+      .eq("published", true)
+      .order("position");
+    if (error) return [];
+    return (data as unknown as AlbumRow[]).map(rowToAlbum);
+  } catch {
+    return [];
+  }
+}
 
-export const brand = {
-  name: "Book & Capture",
-  tagline: "Photography & Videography",
-  email: "hello@bookandcapture.com",
-  instagramUrl: "https://instagram.com/",
-  vimeoUrl: "https://vimeo.com/",
-  tiktokUrl: "https://tiktok.com/",
-} as const;
+export async function getAlbumBySlug(slug: string): Promise<Album | undefined> {
+  if (!isSupabaseConfigured()) return undefined;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("albums")
+      .select(
+        "id, slug, name, description, position, cover_media_id, cover:media!albums_cover_media_id_fkey(storage_path)",
+      )
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    if (error || !data) return undefined;
+    return rowToAlbum(data as unknown as AlbumRow);
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getAllMedia(): Promise<MediaItem[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("media")
+      .select(
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position, album:albums!inner(slug, published)",
+      )
+      .eq("published", true)
+      .eq("album.published", true)
+      .order("position");
+    if (error) return [];
+    return (data as unknown as MediaRow[]).map(rowToMedia);
+  } catch {
+    return [];
+  }
+}
+
+export async function getMediaForAlbum(
+  slug: string | null,
+): Promise<MediaItem[]> {
+  if (!slug || slug === "all") return getAllMedia();
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: album } = await supabase
+      .from("albums")
+      .select("id")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    if (!album) return [];
+    const { data, error } = await supabase
+      .from("media")
+      .select(
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position",
+      )
+      .eq("album_id", album.id)
+      .eq("published", true)
+      .order("position");
+    if (error) return [];
+    return (data as unknown as MediaRow[]).map(rowToMedia);
+  } catch {
+    return [];
+  }
+}
+
+export async function getHeroImage(): Promise<MediaItem | null> {
+  const all = await getAllMedia();
+  const firstImage = all.find((m) => m.type === "image");
+  return firstImage ?? all[0] ?? null;
+}
+
+export async function getFeaturedMedia(limit = 6): Promise<MediaItem[]> {
+  const all = await getAllMedia();
+  return all.slice(0, limit);
+}

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Play } from "lucide-react";
-import type { MediaItem, Album } from "@/lib/portfolio";
+import type { MediaItem, Album } from "@/lib/brand";
 import { Lightbox } from "./lightbox";
 import { cn } from "@/lib/utils";
 

@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { heroImage } from "@/lib/portfolio";
+import { getHeroImage } from "@/lib/portfolio";
+
+const FALLBACK_HERO_SRC =
+  "https://images.unsplash.com/photo-1504703395950-b89145a5425b?w=2400&q=95&auto=format&fit=max";
 
 export const metadata: Metadata = {
   title: "About",
@@ -28,7 +31,10 @@ const pillars = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const hero = await getHeroImage();
+  const heroSrc = hero?.src ?? FALLBACK_HERO_SRC;
+
   return (
     <>
       <section className="container-editorial pt-[calc(var(--header-h)+2rem)] pb-12 md:pb-16">
@@ -43,7 +49,7 @@ export default function AboutPage() {
       <section className="container-editorial grid gap-10 md:grid-cols-[1.1fr_1fr] md:gap-16 pb-24 md:pb-32 items-start">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-[color:var(--color-surface)]">
           <Image
-            src={heroImage.src}
+            src={heroSrc}
             alt="Photographer at work"
             fill
             sizes="(min-width: 768px) 50vw, 100vw"

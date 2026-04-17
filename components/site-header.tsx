@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mail, Menu, X } from "lucide-react";
 import { InstagramIcon, VimeoIcon } from "@/components/social-icons";
 import { AnimatePresence, motion } from "motion/react";
-import { albums, brand } from "@/lib/portfolio";
+import { brand, type Album } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -16,7 +16,7 @@ const NAV_LINKS = [
   { label: "Contact", href: "/contact" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ albums = [] }: { albums?: Album[] }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { OrganizationJsonLd } from "@/components/json-ld";
-import { brand } from "@/lib/portfolio";
+import { brand } from "@/lib/brand";
+import { getAllAlbums } from "@/lib/portfolio";
 import "./globals.css";
 
 const bebas = Bebas_Neue({
@@ -68,9 +69,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const albums = await getAllAlbums();
+
   return (
     <html
       lang="en"
@@ -83,7 +86,7 @@ export default function RootLayout({
         <Link href="#main" className="skip-link">
           Skip to content
         </Link>
-        <SiteHeader />
+        <SiteHeader albums={albums} />
         <main id="main" className="flex-1">
           {children}
         </main>

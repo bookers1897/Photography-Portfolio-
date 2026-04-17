@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { albums, media } from "@/lib/portfolio";
+import { getAllAlbums, getAllMedia } from "@/lib/portfolio";
 import { MasonryGallery } from "@/components/masonry-gallery";
 
 export const metadata: Metadata = {
@@ -8,7 +8,9 @@ export const metadata: Metadata = {
     "Selected photography and videography work — editorial, beauty, lifestyle, portraits, commissioned, and motion.",
 };
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const [albums, media] = await Promise.all([getAllAlbums(), getAllMedia()]);
+
   return (
     <>
       <header className="container-editorial pt-[calc(var(--header-h)+2rem)] pb-12 md:pb-16">

@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
-import { albums } from "@/lib/portfolio";
+import { getAllAlbums } from "@/lib/portfolio";
 
 const BASE = "https://bookandcapture.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const albums = await getAllAlbums();
+
   const routes: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/work`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
