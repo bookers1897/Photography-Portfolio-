@@ -7,12 +7,9 @@ import {
 } from "@/lib/portfolio";
 import { MasonryGallery } from "@/components/masonry-gallery";
 
-type Params = Promise<{ album: string }>;
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  const albums = await getAllAlbums();
-  return albums.map((a) => ({ album: a.slug }));
-}
+type Params = Promise<{ album: string }>;
 
 export async function generateMetadata({
   params,
