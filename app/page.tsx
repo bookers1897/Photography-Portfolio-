@@ -2,11 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import {
-  getAllAlbums,
-  getFeaturedMedia,
+  getAlbumSlides,
   getHeroImage,
+  getMosaicMedia,
 } from "@/lib/portfolio";
 import { FeaturedStrip } from "@/components/featured-strip";
+import { MosaicGrid } from "@/components/mosaic-grid";
 
 const FALLBACK_HERO = {
   src: "https://images.unsplash.com/photo-1504703395950-b89145a5425b?w=2400&q=95&auto=format&fit=max",
@@ -14,9 +15,9 @@ const FALLBACK_HERO = {
 };
 
 export default async function HomePage() {
-  const [albums, featured, hero] = await Promise.all([
-    getAllAlbums(),
-    getFeaturedMedia(6),
+  const [slides, mosaic, hero] = await Promise.all([
+    getAlbumSlides(),
+    getMosaicMedia(12),
     getHeroImage(),
   ]);
 
@@ -90,14 +91,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {featured.length > 0 && <FeaturedStrip items={featured} />}
+      {slides.length > 0 && <FeaturedStrip slides={slides} />}
 
-      {albums.length > 0 && (
-        <section className="container-editorial py-24 md:py-32 border-t border-[color:var(--color-border)]">
-          <div className="flex items-end justify-between mb-10 md:mb-14 gap-6 flex-wrap">
+      {mosaic.length > 0 && (
+        <section className="border-t border-[color:var(--color-border)] pt-24 md:pt-32">
+          <div className="container-editorial mb-10 md:mb-14 flex items-end justify-between gap-6 flex-wrap">
             <div>
               <p className="font-display text-xs tracking-[0.3em] opacity-70 mb-4">
-                02 — ALBUMS
+                02 — SELECTED FRAMES
               </p>
               <h2 className="font-display text-5xl md:text-7xl leading-[0.95] tracking-wide">
                 EXPLORE
@@ -112,28 +113,7 @@ export default async function HomePage() {
               SEE ALL <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />
             </Link>
           </div>
-          <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[color:var(--color-border)] border border-[color:var(--color-border)]">
-            {albums.map((a) => (
-              <li key={a.id} className="bg-[color:var(--color-bg)]">
-                <Link
-                  href={`/work/${a.slug}`}
-                  className="group flex flex-col gap-3 p-8 md:p-10 h-full hover:bg-[color:var(--color-surface)] transition-colors"
-                >
-                  <span className="font-display text-3xl md:text-4xl tracking-wide">
-                    {a.name.toUpperCase()}
-                  </span>
-                  {a.description && (
-                    <span className="text-sm text-[color:var(--color-ink-muted)] font-serif italic">
-                      {a.description}
-                    </span>
-                  )}
-                  <span className="mt-auto pt-6 font-display text-xs tracking-[0.3em] inline-flex items-center gap-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition">
-                    VIEW <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <MosaicGrid items={mosaic} />
         </section>
       )}
 

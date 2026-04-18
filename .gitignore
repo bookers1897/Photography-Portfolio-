@@ -1,6 +1,9 @@
 # Brainstorming companion artifacts
 .superpowers/
 
+# Claude Code local settings
+.claude/
+
 # OS junk
 .DS_Store
 Thumbs.db

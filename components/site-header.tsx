@@ -8,6 +8,7 @@ import { InstagramIcon, VimeoIcon } from "@/components/social-icons";
 import { AnimatePresence, motion } from "motion/react";
 import { brand, type Album } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import { signOutAction } from "@/app/login/actions";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -16,7 +17,13 @@ const NAV_LINKS = [
   { label: "Contact", href: "/contact" },
 ];
 
-export function SiteHeader({ albums = [] }: { albums?: Album[] }) {
+export function SiteHeader({
+  albums = [],
+  isAuthenticated = false,
+}: {
+  albums?: Album[];
+  isAuthenticated?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -204,7 +211,27 @@ export function SiteHeader({ albums = [] }: { albums?: Album[] }) {
                 ))}
               </ul>
 
-              <div className="mt-10 pt-6 border-t border-[color:var(--color-border)] flex flex-col gap-4">
+              <div className="mt-6 pt-6 border-t border-[color:var(--color-border)] font-display tracking-[0.2em] text-sm">
+                {isAuthenticated ? (
+                  <form action={signOutAction}>
+                    <button
+                      type="submit"
+                      className="block py-1 opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                      LOGOUT
+                    </button>
+                  </form>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="block py-1 opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    LOGIN
+                  </Link>
+                )}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-[color:var(--color-border)] flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   <a
                     href={brand.instagramUrl}

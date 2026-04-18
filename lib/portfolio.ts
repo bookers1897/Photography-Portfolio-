@@ -107,7 +107,7 @@ export async function getAllMedia(): Promise<MediaItem[]> {
     const { data, error } = await supabase
       .from("media")
       .select(
-        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position, album:albums!inner(slug, published)",
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position, album:albums!media_album_id_fkey!inner(slug, published)",
       )
       .eq("published", true)
       .eq("album.published", true)
@@ -157,4 +157,49 @@ export async function getHeroImage(): Promise<MediaItem | null> {
 export async function getFeaturedMedia(limit = 6): Promise<MediaItem[]> {
   const all = await getAllMedia();
   return all.slice(0, limit);
+}
+
+export async function getAlbumSlides(): Promise<
+  Array<{ album: Album; cover: MediaItem }>
+> {
+  const [albums, media] = await Promise.all([getAllAlbums(), getAllMedia()]);
+  const firstByAlbum = new Map<string, MediaItem>();
+  for (const m of media) {
+    if (m.type !== "image") continue;
+    if (!firstByAlbum.has(m.albumId)) firstByAlbum.set(m.albumId, m);
+  }
+  const slides: Array<{ album: Album; cover: MediaItem }> = [];
+  for (const a of albums) {
+    const cover = firstByAlbum.get(a.id);
+    if (cover) slides.push({ album: a, cover });
+  }
+  return slides;
+}
+
+export async function getMosaicMedia(limit = 12): Promise<MediaItem[]> {
+  const all = await getAllMedia();
+  const byAlbum = new Map<string, MediaItem[]>();
+  for (const m of all) {
+    if (m.type !== "image") continue;
+    const key = m.albumSlug ?? m.albumId;
+    const arr = byAlbum.get(key) ?? [];
+    arr.push(m);
+    byAlbum.set(key, arr);
+  }
+  const queues = Array.from(byAlbum.values());
+  const out: MediaItem[] = [];
+  let round = 0;
+  while (out.length < limit) {
+    let pulled = false;
+    for (const q of queues) {
+      if (round < q.length) {
+        out.push(q[round]);
+        pulled = true;
+        if (out.length >= limit) break;
+      }
+    }
+    if (!pulled) break;
+    round++;
+  }
+  return out;
 }

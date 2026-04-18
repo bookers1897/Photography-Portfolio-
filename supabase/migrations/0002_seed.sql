@@ -2,10 +2,15 @@
 -- Run this AFTER 0001_init.sql AND after Bookers1897@gmail.com has signed up
 -- (from the /login page). This migration is idempotent.
 
--- Promote the admin user
-update public.profiles
-   set role = 'admin'
- where email = 'Bookers1897@gmail.com';
+-- Promote the admin user (case-insensitive; also creates the profile
+-- row if the on_auth_user_created trigger didn't fire).
+insert into public.profiles (id, email, role)
+select id, email, 'admin'
+from auth.users
+where lower(email) = lower('Bookers1897@gmail.com')
+on conflict (id) do update
+  set role = 'admin',
+      email = excluded.email;
 
 -- Seed empty albums in display order
 insert into public.albums (slug, name, description, position, published) values

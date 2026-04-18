@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
 import { Play } from "lucide-react";
 import type { MediaItem, Album } from "@/lib/brand";
 import { Lightbox } from "./lightbox";
@@ -119,13 +118,9 @@ export function MasonryGallery({ items, albums, activeSlug }: Props) {
 
 function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       className="group relative block w-full overflow-hidden bg-[color:var(--color-surface)]"
       aria-label={`Open ${item.name}`}
       style={{ aspectRatio: `${item.width} / ${item.height}` }}
@@ -162,7 +157,7 @@ function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
           {item.name.toUpperCase()}
         </span>
       </span>
-    </motion.button>
+    </button>
   );
 }
 

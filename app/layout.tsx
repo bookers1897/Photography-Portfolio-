@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { OrganizationJsonLd } from "@/components/json-ld";
 import { brand } from "@/lib/brand";
 import { getAllAlbums } from "@/lib/portfolio";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 const bebas = Bebas_Neue({
@@ -72,7 +73,12 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const albums = await getAllAlbums();
+  const supabase = await createSupabaseServerClient();
+  const [albums, userResult] = await Promise.all([
+    getAllAlbums(),
+    supabase.auth.getUser(),
+  ]);
+  const isAuthenticated = !!userResult.data.user;
 
   return (
     <html
@@ -86,7 +92,7 @@ export default async function RootLayout({
         <Link href="#main" className="skip-link">
           Skip to content
         </Link>
-        <SiteHeader albums={albums} />
+        <SiteHeader albums={albums} isAuthenticated={isAuthenticated} />
         <main id="main" className="flex-1">
           {children}
         </main>
