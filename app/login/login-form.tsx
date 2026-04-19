@@ -16,7 +16,7 @@ export function LoginForm({ next, initialError }: Props) {
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="next" value={next ?? "/admin"} />
+      <input type="hidden" name="next" value={next ?? ""} />
 
       <label className="block">
         <span className="block text-xs font-display tracking-[0.2em] mb-2 opacity-80">

@@ -31,32 +31,35 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPortalRoute = pathname.startsWith("/portal");
   const isLoginRoute = pathname === "/login";
 
-  if (isAdminRoute && !user) {
+  if ((isAdminRoute || isPortalRoute) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (isAdminRoute && user) {
+  let role: string | null = null;
+  if (user && (isAdminRoute || isLoginRoute)) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
+    role = profile?.role ?? null;
+  }
 
-    if (profile?.role !== "admin") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
+  if (isAdminRoute && user && role !== "admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/portal";
+    return NextResponse.redirect(url);
   }
 
   if (isLoginRoute && user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin";
+    url.pathname = role === "admin" ? "/admin" : "/portal";
     return NextResponse.redirect(url);
   }
 

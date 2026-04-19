@@ -4,6 +4,7 @@ export type Album = {
   name: string;
   description?: string;
   cover?: string;
+  expiresAt?: string;
 };
 
 export type MediaItem = {

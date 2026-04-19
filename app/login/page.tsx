@@ -21,7 +21,7 @@ export default async function LoginPage({
           SIGN IN
         </h1>
         <p className="text-sm opacity-70 mb-8">
-          Admin access to Book &amp; Capture.
+          Sign in to access your sessions or admin tools.
         </p>
         <LoginForm next={sp.next} initialError={sp.error} />
       </div>

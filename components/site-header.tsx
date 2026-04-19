@@ -20,9 +20,11 @@ const NAV_LINKS = [
 export function SiteHeader({
   albums = [],
   isAuthenticated = false,
+  userRole = null,
 }: {
   albums?: Album[];
   isAuthenticated?: boolean;
+  userRole?: "admin" | "client" | null;
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -211,7 +213,23 @@ export function SiteHeader({
                 ))}
               </ul>
 
-              <div className="mt-6 pt-6 border-t border-[color:var(--color-border)] font-display tracking-[0.2em] text-sm">
+              <div className="mt-6 pt-6 border-t border-[color:var(--color-border)] font-display tracking-[0.2em] text-sm flex flex-col gap-1">
+                {isAuthenticated && userRole === "client" && (
+                  <Link
+                    href="/portal"
+                    className="block py-1 opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    MY SESSIONS
+                  </Link>
+                )}
+                {isAuthenticated && userRole === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="block py-1 opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    ADMIN
+                  </Link>
+                )}
                 {isAuthenticated ? (
                   <form action={signOutAction}>
                     <button

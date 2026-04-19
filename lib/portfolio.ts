@@ -21,6 +21,7 @@ type AlbumRow = {
   position: number;
   cover_media_id: string | null;
   cover?: { storage_path: string | null } | null;
+  expires_at?: string | null;
 };
 
 type MediaRow = {
@@ -45,6 +46,7 @@ function rowToAlbum(row: AlbumRow): Album {
     name: row.name,
     description: row.description ?? undefined,
     cover: coverPath ? storagePublicUrl(coverPath) : undefined,
+    expiresAt: row.expires_at ?? undefined,
   };
 }
 
@@ -97,6 +99,72 @@ export async function getAlbumBySlug(slug: string): Promise<Album | undefined> {
     return rowToAlbum(data as unknown as AlbumRow);
   } catch {
     return undefined;
+  }
+}
+
+export async function getClientAlbums(userId: string): Promise<Album[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("albums")
+      .select(
+        "id, slug, name, description, position, cover_media_id, expires_at, cover:media!albums_cover_media_id_fkey(storage_path)",
+      )
+      .eq("visibility", "private")
+      .eq("owner_id", userId)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+      .order("created_at", { ascending: false });
+    if (error) return [];
+    return (data as unknown as AlbumRow[]).map(rowToAlbum);
+  } catch {
+    return [];
+  }
+}
+
+export async function getClientAlbumBySlug(
+  slug: string,
+  userId: string,
+): Promise<Album | undefined> {
+  if (!isSupabaseConfigured()) return undefined;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("albums")
+      .select(
+        "id, slug, name, description, position, cover_media_id, expires_at, cover:media!albums_cover_media_id_fkey(storage_path)",
+      )
+      .eq("slug", slug)
+      .eq("visibility", "private")
+      .eq("owner_id", userId)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+      .maybeSingle();
+    if (error || !data) return undefined;
+    return rowToAlbum(data as unknown as AlbumRow);
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getMediaForClientAlbum(
+  albumId: string,
+): Promise<MediaItem[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("media")
+      .select(
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position",
+      )
+      .eq("album_id", albumId)
+      .order("position");
+    if (error) return [];
+    return (data as unknown as MediaRow[]).map(rowToMedia);
+  } catch {
+    return [];
   }
 }
 

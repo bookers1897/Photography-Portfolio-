@@ -11,20 +11,37 @@ export async function signInAction(
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/admin");
+  const nextParam = String(formData.get("next") ?? "").trim();
 
   if (!email || !password) {
     return { error: "Email and password are required." };
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error, data } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     return { error: error.message };
   }
 
-  redirect(next.startsWith("/") ? next : "/admin");
+  if (nextParam && nextParam.startsWith("/")) {
+    redirect(nextParam);
+  }
+
+  let role: string | null = null;
+  if (data.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+    role = profile?.role ?? null;
+  }
+
+  redirect(role === "admin" ? "/admin" : "/portal");
 }
 
 export async function signOutAction() {

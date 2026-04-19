@@ -22,19 +22,33 @@ export default async function AlbumEditorPage({
 
   const { data: album } = await supabase
     .from("albums")
-    .select("id, slug, name, description, published, cover_media_id")
+    .select(
+      "id, slug, name, description, published, cover_media_id, visibility, owner_id, expires_at",
+    )
     .eq("slug", slug)
     .single();
 
   if (!album) notFound();
 
-  const { data: media } = await supabase
-    .from("media")
-    .select(
-      "id, type, storage_path, poster_path, name, alt, width, height, position, published",
-    )
-    .eq("album_id", album.id)
-    .order("position");
+  const [{ data: media }, { data: clients }] = await Promise.all([
+    supabase
+      .from("media")
+      .select(
+        "id, type, storage_path, poster_path, name, alt, width, height, position, published",
+      )
+      .eq("album_id", album.id)
+      .order("position"),
+    supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("role", "client")
+      .order("email"),
+  ]);
+
+  const isPrivate = album.visibility === "private";
+  const expiresAtValue = album.expires_at
+    ? new Date(album.expires_at).toISOString().slice(0, 10)
+    : "";
 
   return (
     <div className="space-y-10">
@@ -90,6 +104,70 @@ export default async function AlbumEditorPage({
             />
             <span>Published</span>
           </label>
+
+          <fieldset className="border border-[color:var(--color-ink)]/10 p-4 space-y-3">
+            <legend className="px-2 text-xs font-display tracking-[0.2em] opacity-80">
+              VISIBILITY
+            </legend>
+
+            <div className="flex gap-6 text-sm">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="public"
+                  defaultChecked={!isPrivate}
+                />
+                <span>Public (portfolio)</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="private"
+                  defaultChecked={isPrivate}
+                />
+                <span>Private (client session)</span>
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="block text-xs font-display tracking-[0.2em] mb-2 opacity-80">
+                OWNER (CLIENT)
+              </span>
+              <select
+                name="owner_id"
+                defaultValue={album.owner_id ?? ""}
+                className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm"
+              >
+                <option value="">— none —</option>
+                {(clients ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.email}
+                  </option>
+                ))}
+              </select>
+              <span className="block text-xs opacity-60 mt-1">
+                Only applied when visibility is Private.
+              </span>
+            </label>
+
+            <label className="block">
+              <span className="block text-xs font-display tracking-[0.2em] mb-2 opacity-80">
+                EXPIRES AT
+              </span>
+              <input
+                type="date"
+                name="expires_at"
+                defaultValue={expiresAtValue}
+                className="border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm"
+              />
+              <span className="block text-xs opacity-60 mt-1">
+                Optional. Leave blank for no expiry. Typical: 30 days from
+                delivery.
+              </span>
+            </label>
+          </fieldset>
 
           <div className="flex gap-3">
             <button

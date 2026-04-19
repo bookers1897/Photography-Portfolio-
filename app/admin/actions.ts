@@ -68,12 +68,30 @@ export async function updateAlbumAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
   const published = formData.get("published") === "on";
+  const visibilityRaw = String(formData.get("visibility") ?? "public");
+  const visibility = visibilityRaw === "private" ? "private" : "public";
+  const ownerIdRaw = String(formData.get("owner_id") ?? "").trim();
+  const expiresAtRaw = String(formData.get("expires_at") ?? "").trim();
 
   if (!id || !name) throw new Error("Missing fields.");
 
+  const owner_id =
+    visibility === "private" && ownerIdRaw ? ownerIdRaw : null;
+  const expires_at =
+    visibility === "private" && expiresAtRaw
+      ? new Date(`${expiresAtRaw}T23:59:59Z`).toISOString()
+      : null;
+
   const { error } = await supabase
     .from("albums")
-    .update({ name, description, published })
+    .update({
+      name,
+      description,
+      published,
+      visibility,
+      owner_id,
+      expires_at,
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
 
@@ -81,6 +99,7 @@ export async function updateAlbumAction(formData: FormData) {
   revalidatePath("/admin/albums");
   revalidatePath(`/admin/albums/${formData.get("slug")}`);
   revalidatePath("/work");
+  revalidatePath("/portal");
 }
 
 export async function deleteAlbumAction(formData: FormData) {

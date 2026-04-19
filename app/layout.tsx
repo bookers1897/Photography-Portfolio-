@@ -78,7 +78,18 @@ export default async function RootLayout({
     getAllAlbums(),
     supabase.auth.getUser(),
   ]);
-  const isAuthenticated = !!userResult.data.user;
+  const user = userResult.data.user;
+  const isAuthenticated = !!user;
+
+  let userRole: "admin" | "client" | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    userRole = profile?.role === "admin" ? "admin" : "client";
+  }
 
   return (
     <html
@@ -92,7 +103,11 @@ export default async function RootLayout({
         <Link href="#main" className="skip-link">
           Skip to content
         </Link>
-        <SiteHeader albums={albums} isAuthenticated={isAuthenticated} />
+        <SiteHeader
+          albums={albums}
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+        />
         <main id="main" className="flex-1">
           {children}
         </main>
