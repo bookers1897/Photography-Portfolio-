@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdmin } from "./_lib/require-admin";
 
 function slugify(input: string) {
   return input
@@ -11,21 +11,6 @@ function slugify(input: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
-}
-
-async function requireAdmin() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not signed in.");
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") throw new Error("Not an admin.");
-  return { supabase, user };
 }
 
 // ---- ALBUMS ----
@@ -247,4 +232,52 @@ export async function setAlbumCoverAction(formData: FormData) {
   revalidatePath("/admin");
   if (slug) revalidatePath(`/admin/albums/${slug}`);
   revalidatePath("/work");
+  revalidatePath("/");
+}
+
+export async function reorderAlbumsAction(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const orderRaw = String(formData.get("order") ?? "[]");
+  let ids: string[] = [];
+  try {
+    ids = JSON.parse(orderRaw);
+  } catch {
+    throw new Error("Invalid order payload.");
+  }
+
+  await Promise.all(
+    ids.map((id, i) =>
+      supabase.from("albums").update({ position: i }).eq("id", id),
+    ),
+  );
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/albums");
+  revalidatePath("/");
+  revalidatePath("/work");
+}
+
+export async function updateMediaAction(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const altRaw = String(formData.get("alt") ?? "").trim();
+  if (!id || !name) throw new Error("Missing fields.");
+
+  const alt = altRaw || null;
+
+  const { error } = await supabase
+    .from("media")
+    .update({ name, alt })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin");
+  if (slug) {
+    revalidatePath(`/admin/albums/${slug}`);
+    revalidatePath(`/work/${slug}`);
+  }
+  revalidatePath("/work");
+  revalidatePath("/");
 }

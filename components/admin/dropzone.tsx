@@ -64,9 +64,23 @@ async function readVideoDimensions(
   }
 }
 
-function extFromName(name: string) {
+const ALLOWED_EXTS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".avif",
+  ".mp4",
+  ".webm",
+  ".mov",
+]);
+
+function safeExt(name: string, fallback: string) {
   const dot = name.lastIndexOf(".");
-  return dot >= 0 ? name.slice(dot).toLowerCase() : "";
+  if (dot < 0) return fallback;
+  const raw = name.slice(dot).toLowerCase();
+  if (!/^\.[a-z0-9]{1,8}$/.test(raw)) return fallback;
+  return ALLOWED_EXTS.has(raw) ? raw : fallback;
 }
 
 export function MediaDropzone({ albumId, albumSlug }: Props) {
@@ -103,7 +117,7 @@ export function MediaDropzone({ albumId, albumSlug }: Props) {
           ? await readImageDimensions(item.file)
           : await readVideoDimensions(item.file);
 
-        const ext = extFromName(item.file.name) || (isImage ? ".jpg" : ".mp4");
+        const ext = safeExt(item.file.name, isImage ? ".jpg" : ".mp4");
         const storagePath = `${albumId}/${Date.now()}-${randomId()}${ext}`;
 
         setItems((prev) =>

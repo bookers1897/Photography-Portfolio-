@@ -75,6 +75,7 @@ export async function getAllAlbums(): Promise<Album[]> {
         "id, slug, name, description, position, cover_media_id, cover:media!albums_cover_media_id_fkey(storage_path)",
       )
       .eq("published", true)
+      .eq("visibility", "public")
       .order("position");
     if (error) return [];
     return (data as unknown as AlbumRow[]).map(rowToAlbum);
@@ -94,6 +95,7 @@ export async function getAlbumBySlug(slug: string): Promise<Album | undefined> {
       )
       .eq("slug", slug)
       .eq("published", true)
+      .eq("visibility", "public")
       .maybeSingle();
     if (error || !data) return undefined;
     return rowToAlbum(data as unknown as AlbumRow);
@@ -175,10 +177,11 @@ export async function getAllMedia(): Promise<MediaItem[]> {
     const { data, error } = await supabase
       .from("media")
       .select(
-        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position, album:albums!media_album_id_fkey!inner(slug, published)",
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position, album:albums!media_album_id_fkey!inner(slug, published, visibility)",
       )
       .eq("published", true)
       .eq("album.published", true)
+      .eq("album.visibility", "public")
       .order("position");
     if (error) return [];
     return (data as unknown as MediaRow[]).map(rowToMedia);
@@ -216,10 +219,84 @@ export async function getMediaForAlbum(
   }
 }
 
-export async function getHeroImage(): Promise<MediaItem | null> {
-  const all = await getAllMedia();
-  const firstImage = all.find((m) => m.type === "image");
-  return firstImage ?? all[0] ?? null;
+export type SiteSettings = {
+  heroMediaId: string | null;
+  focalX: number;
+  focalY: number;
+  overlay: number;
+};
+
+const DEFAULT_SITE_SETTINGS: SiteSettings = {
+  heroMediaId: null,
+  focalX: 50,
+  focalY: 50,
+  overlay: 0.35,
+};
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  if (!isSupabaseConfigured()) return DEFAULT_SITE_SETTINGS;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("hero_media_id, hero_focal_x, hero_focal_y, hero_overlay")
+      .eq("id", true)
+      .maybeSingle();
+    if (error || !data) return DEFAULT_SITE_SETTINGS;
+    return {
+      heroMediaId: (data.hero_media_id as string | null) ?? null,
+      focalX: Number(data.hero_focal_x ?? 50),
+      focalY: Number(data.hero_focal_y ?? 50),
+      overlay: Number(data.hero_overlay ?? 0.35),
+    };
+  } catch {
+    return DEFAULT_SITE_SETTINGS;
+  }
+}
+
+export type HeroImage = MediaItem & {
+  focalX: number;
+  focalY: number;
+  overlay: number;
+};
+
+async function getMediaById(id: string): Promise<MediaItem | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("media")
+      .select(
+        "id, album_id, type, storage_path, poster_path, name, alt, width, height, position",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return rowToMedia(data as unknown as MediaRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function getHeroImage(): Promise<HeroImage | null> {
+  const settings = await getSiteSettings();
+
+  let item: MediaItem | null = null;
+  if (settings.heroMediaId) {
+    item = await getMediaById(settings.heroMediaId);
+  }
+  if (!item) {
+    const all = await getAllMedia();
+    item = all.find((m) => m.type === "image") ?? all[0] ?? null;
+  }
+  if (!item) return null;
+
+  return {
+    ...item,
+    focalX: settings.focalX,
+    focalY: settings.focalY,
+    overlay: settings.overlay,
+  };
 }
 
 export async function getFeaturedMedia(limit = 6): Promise<MediaItem[]> {

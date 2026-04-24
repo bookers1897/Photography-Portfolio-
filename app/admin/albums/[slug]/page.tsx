@@ -1,14 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { storagePublicUrl } from "@/lib/utils";
-import {
-  deleteAlbumAction,
-  deleteMediaAction,
-  setAlbumCoverAction,
-  updateAlbumAction,
-} from "../../actions";
+import { deleteAlbumAction, updateAlbumAction } from "../../actions";
 import { MediaDropzone } from "@/components/admin/dropzone";
+import { SortableMediaGrid } from "@/components/admin/sortable-media-grid";
 
 type Params = Promise<{ slug: string }>;
 
@@ -80,7 +75,7 @@ export default async function AlbumEditorPage({
               name="name"
               defaultValue={album.name}
               required
-              className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm"
+              className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm"
             />
           </label>
 
@@ -92,7 +87,7 @@ export default async function AlbumEditorPage({
               name="description"
               defaultValue={album.description ?? ""}
               rows={3}
-              className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm resize-none"
+              className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm resize-none"
             />
           </label>
 
@@ -138,7 +133,7 @@ export default async function AlbumEditorPage({
               <select
                 name="owner_id"
                 defaultValue={album.owner_id ?? ""}
-                className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm"
+                className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm"
               >
                 <option value="">— none —</option>
                 {(clients ?? []).map((c) => (
@@ -160,7 +155,7 @@ export default async function AlbumEditorPage({
                 type="date"
                 name="expires_at"
                 defaultValue={expiresAtValue}
-                className="border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm"
+                className="border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm"
               />
               <span className="block text-xs opacity-60 mt-1">
                 Optional. Leave blank for no expiry. Typical: 30 days from
@@ -199,90 +194,12 @@ export default async function AlbumEditorPage({
         <h3 className="font-display tracking-[0.2em] text-sm mb-4">
           MEDIA ({media?.length ?? 0})
         </h3>
-        {(!media || media.length === 0) && (
-          <p className="text-sm opacity-60">
-            No media yet. Drop files above to upload.
-          </p>
-        )}
-        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {(media ?? []).map((m) => {
-            const url = storagePublicUrl(m.storage_path);
-            const poster = m.poster_path
-              ? storagePublicUrl(m.poster_path)
-              : null;
-            const isCover = album.cover_media_id === m.id;
-            return (
-              <li
-                key={m.id}
-                className="group relative border border-[color:var(--color-ink)]/10 bg-[color:var(--color-surface)]"
-              >
-                <div
-                  className="relative overflow-hidden"
-                  style={{ aspectRatio: `${m.width} / ${m.height}` }}
-                >
-                  {m.type === "image" ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={url}
-                      alt={m.alt ?? m.name}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={poster ?? url}
-                      alt={m.alt ?? m.name}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  )}
-                  {m.type === "video" && (
-                    <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 font-display tracking-[0.2em]">
-                      VIDEO
-                    </span>
-                  )}
-                  {isCover && (
-                    <span className="absolute top-2 left-2 bg-[color:var(--color-ink)] text-[color:var(--color-surface)] text-[10px] px-2 py-0.5 font-display tracking-[0.2em]">
-                      COVER
-                    </span>
-                  )}
-                </div>
-                <div className="p-2 text-xs flex flex-col gap-2">
-                  <span className="truncate">{m.name}</span>
-                  <div className="flex gap-2 flex-wrap">
-                    <form action={setAlbumCoverAction}>
-                      <input
-                        type="hidden"
-                        name="album_id"
-                        value={album.id}
-                      />
-                      <input type="hidden" name="media_id" value={m.id} />
-                      <input type="hidden" name="slug" value={album.slug} />
-                      <button
-                        type="submit"
-                        disabled={isCover}
-                        className="text-[10px] font-display tracking-[0.2em] opacity-70 hover:opacity-100 disabled:opacity-30"
-                      >
-                        {isCover ? "IS COVER" : "SET COVER"}
-                      </button>
-                    </form>
-                    <form action={deleteMediaAction}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <input type="hidden" name="slug" value={album.slug} />
-                      <button
-                        type="submit"
-                        className="text-[10px] font-display tracking-[0.2em] text-red-700 opacity-80 hover:opacity-100"
-                      >
-                        DELETE
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <SortableMediaGrid
+          items={(media ?? []) as Parameters<typeof SortableMediaGrid>[0]["items"]}
+          albumId={album.id}
+          albumSlug={album.slug}
+          coverId={album.cover_media_id ?? null}
+        />
       </section>
     </div>
   );

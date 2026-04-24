@@ -38,12 +38,12 @@ export default async function AdminDashboard() {
             <li key={a.id}>
               <Link
                 href={`/admin/albums/${a.slug}`}
-                className="flex items-center justify-between py-4 hover:opacity-60"
+                className="flex items-center justify-between gap-3 py-5 px-2 -mx-2 hover:opacity-60 touch-manipulation"
               >
-                <span className="font-display tracking-[0.2em] text-sm">
+                <span className="font-display tracking-[0.2em] text-sm truncate">
                   {a.name.toUpperCase()}
                 </span>
-                <span className="text-xs opacity-60">
+                <span className="text-xs opacity-60 shrink-0">
                   {a.published ? "Published" : "Draft"}
                 </span>
               </Link>

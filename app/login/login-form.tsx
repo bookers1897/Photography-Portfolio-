@@ -27,7 +27,7 @@ export function LoginForm({ next, initialError }: Props) {
           name="email"
           required
           autoComplete="email"
-          className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
+          className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
         />
       </label>
 
@@ -40,7 +40,7 @@ export function LoginForm({ next, initialError }: Props) {
           name="password"
           required
           autoComplete="current-password"
-          className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
+          className="w-full border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
         />
       </label>
 
