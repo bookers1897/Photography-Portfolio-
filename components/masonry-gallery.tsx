@@ -14,8 +14,6 @@ type Props = {
   activeSlug?: string;
 };
 
-const COLUMN_COUNT = 3;
-
 function packColumns(items: MediaItem[], cols: number) {
   const heights = new Array(cols).fill(0);
   const buckets: MediaItem[][] = Array.from({ length: cols }, () => []);
@@ -34,40 +32,46 @@ function packColumns(items: MediaItem[], cols: number) {
 export function MasonryGallery({ items, albums, activeSlug }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const columns = useMemo(() => packColumns(items, COLUMN_COUNT), [items]);
+  const columnsDesktop = useMemo(() => packColumns(items, 3), [items]);
+  const columnsMobile = useMemo(() => packColumns(items, 2), [items]);
 
   return (
     <div className="container-editorial pb-24">
       {albums && albums.length > 0 && (
         <nav
           aria-label="Album filters"
-          className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-10 font-display text-xs md:text-sm tracking-[0.2em]"
+          className="-mx-6 px-6 md:mx-0 md:px-0 overflow-x-auto mb-8 md:mb-10"
         >
-          <Link
-            href="/work"
-            className={cn(
-              "py-1 transition-opacity",
-              !activeSlug
-                ? "opacity-100 underline underline-offset-8 decoration-[color:var(--color-ink)]"
-                : "opacity-60 hover:opacity-100",
-            )}
-          >
-            ALL
-          </Link>
-          {albums.map((a) => (
-            <Link
-              key={a.slug}
-              href={`/work/${a.slug}`}
-              className={cn(
-                "py-1 transition-opacity",
-                activeSlug === a.slug
-                  ? "opacity-100 underline underline-offset-8 decoration-[color:var(--color-ink)]"
-                  : "opacity-60 hover:opacity-100",
-              )}
-            >
-              {a.name.toUpperCase()}
-            </Link>
-          ))}
+          <ul className="flex items-center gap-x-5 md:gap-x-6 gap-y-2 font-display text-xs md:text-sm tracking-[0.2em] whitespace-nowrap">
+            <li>
+              <Link
+                href="/work"
+                className={cn(
+                  "py-2 inline-block transition-opacity",
+                  !activeSlug
+                    ? "opacity-100 underline underline-offset-8 decoration-[color:var(--color-ink)]"
+                    : "opacity-60 hover:opacity-100",
+                )}
+              >
+                ALL
+              </Link>
+            </li>
+            {albums.map((a) => (
+              <li key={a.slug}>
+                <Link
+                  href={`/work/${a.slug}`}
+                  className={cn(
+                    "py-2 inline-block transition-opacity",
+                    activeSlug === a.slug
+                      ? "opacity-100 underline underline-offset-8 decoration-[color:var(--color-ink)]"
+                      : "opacity-60 hover:opacity-100",
+                  )}
+                >
+                  {a.name.toUpperCase()}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
       )}
 
@@ -78,7 +82,7 @@ export function MasonryGallery({ items, albums, activeSlug }: Props) {
       ) : (
         <>
           <div className="hidden md:grid grid-cols-3 gap-4">
-            {columns.map((col, ci) => (
+            {columnsDesktop.map((col, ci) => (
               <div key={ci} className="flex flex-col gap-4">
                 {col.map((item) => {
                   const absoluteIndex = items.indexOf(item);
@@ -94,13 +98,20 @@ export function MasonryGallery({ items, albums, activeSlug }: Props) {
             ))}
           </div>
 
-          <div className="md:hidden grid grid-cols-1 gap-4">
-            {items.map((item, i) => (
-              <Tile
-                key={item.id}
-                item={item}
-                onClick={() => setOpenIndex(i)}
-              />
+          <div className="md:hidden grid grid-cols-2 gap-2">
+            {columnsMobile.map((col, ci) => (
+              <div key={ci} className="flex flex-col gap-2">
+                {col.map((item) => {
+                  const absoluteIndex = items.indexOf(item);
+                  return (
+                    <Tile
+                      key={item.id}
+                      item={item}
+                      onClick={() => setOpenIndex(absoluteIndex)}
+                    />
+                  );
+                })}
+              </div>
             ))}
           </div>
         </>
@@ -130,7 +141,7 @@ function Tile({ item, onClick }: { item: MediaItem; onClick: () => void }) {
           src={item.src}
           alt={item.alt ?? item.name}
           fill
-          sizes="(min-width: 768px) 33vw, 100vw"
+          sizes="(min-width: 768px) 33vw, 50vw"
           quality={90}
           className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.03]"
         />
@@ -197,7 +208,7 @@ function VideoTile({ item }: { item: MediaItem }) {
           alt=""
           aria-hidden
           fill
-          sizes="(min-width: 768px) 33vw, 100vw"
+          sizes="(min-width: 768px) 33vw, 50vw"
           quality={85}
           className="object-cover"
         />

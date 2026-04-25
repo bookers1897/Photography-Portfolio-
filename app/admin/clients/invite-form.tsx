@@ -31,7 +31,7 @@ export function InviteForm() {
           required
           placeholder="client@example.com"
           autoComplete="off"
-          className="flex-1 border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
+          className="flex-1 border border-[color:var(--color-ink)]/20 bg-[color:var(--color-surface)] px-3 py-2 text-base md:text-sm focus:outline-none focus:border-[color:var(--color-ink)]"
         />
         <button
           type="submit"

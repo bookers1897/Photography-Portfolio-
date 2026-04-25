@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { MediaItem } from "@/lib/portfolio";
 import { VideoPlayer } from "./video-player";
 import { cn } from "@/lib/utils";
+
+const SWIPE_DISTANCE = 70;
+const SWIPE_VELOCITY = 400;
 
 type Props = {
   items: MediaItem[];
@@ -94,10 +97,26 @@ export function Lightbox({ items, index, onClose, onChange }: Props) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.25 }}
-                className="relative h-full w-full flex items-center justify-center"
+                drag={current.type === "image" ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                onDragEnd={(_e: unknown, info: PanInfo) => {
+                  if (
+                    info.offset.x < -SWIPE_DISTANCE ||
+                    info.velocity.x < -SWIPE_VELOCITY
+                  ) {
+                    next();
+                  } else if (
+                    info.offset.x > SWIPE_DISTANCE ||
+                    info.velocity.x > SWIPE_VELOCITY
+                  ) {
+                    prev();
+                  }
+                }}
+                className="relative h-full w-full flex items-center justify-center touch-pan-y"
               >
                 {current.type === "image" ? (
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-full select-none">
                     <Image
                       src={current.src}
                       alt={current.alt ?? current.name}
@@ -105,7 +124,8 @@ export function Lightbox({ items, index, onClose, onChange }: Props) {
                       sizes="100vw"
                       quality={95}
                       priority
-                      className="object-contain"
+                      draggable={false}
+                      className="object-contain pointer-events-none"
                     />
                   </div>
                 ) : (

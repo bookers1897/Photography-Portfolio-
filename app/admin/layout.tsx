@@ -27,7 +27,7 @@ export default async function AdminLayout({
 
   return (
     <div className="container-editorial py-12">
-      <header className="flex flex-wrap items-center justify-between gap-4 pb-8 border-b border-[color:var(--color-ink)]/10">
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 md:pb-8 border-b border-[color:var(--color-ink)]/10">
         <div>
           <p className="font-display tracking-[0.25em] text-xs opacity-60">
             ADMIN
@@ -39,28 +39,58 @@ export default async function AdminLayout({
 
         <nav
           aria-label="Admin"
-          className="flex flex-wrap items-center gap-x-6 gap-y-2 font-display text-xs tracking-[0.2em]"
+          className="-mx-6 px-6 md:mx-0 md:px-0 overflow-x-auto"
         >
-          <Link href="/admin" className="hover:opacity-60">
-            DASHBOARD
-          </Link>
-          <Link href="/admin/albums" className="hover:opacity-60">
-            ALBUMS
-          </Link>
-          <Link href="/admin/clients" className="hover:opacity-60">
-            CLIENTS
-          </Link>
-          <Link href="/" className="hover:opacity-60" target="_blank">
-            VIEW SITE
-          </Link>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="font-display tracking-[0.2em] text-xs hover:opacity-60"
-            >
-              SIGN OUT
-            </button>
-          </form>
+          <ul className="flex items-center gap-5 md:gap-6 font-display text-xs tracking-[0.2em] whitespace-nowrap">
+            <li>
+              <Link href="/admin" className="py-2 inline-block hover:opacity-60">
+                DASHBOARD
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/albums"
+                className="py-2 inline-block hover:opacity-60"
+              >
+                ALBUMS
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/clients"
+                className="py-2 inline-block hover:opacity-60"
+              >
+                CLIENTS
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/settings"
+                className="py-2 inline-block hover:opacity-60"
+              >
+                SETTINGS
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/"
+                className="py-2 inline-block hover:opacity-60"
+                target="_blank"
+              >
+                VIEW SITE
+              </Link>
+            </li>
+            <li>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="py-2 font-display tracking-[0.2em] text-xs hover:opacity-60"
+                >
+                  SIGN OUT
+                </button>
+              </form>
+            </li>
+          </ul>
         </nav>
       </header>
 

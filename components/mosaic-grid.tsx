@@ -2,8 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { MediaItem } from "@/lib/brand";
 
-const COLS = 3;
-
 function packColumns(items: MediaItem[], cols: number) {
   const heights = new Array(cols).fill(0);
   const buckets: MediaItem[][] = Array.from({ length: cols }, () => []);
@@ -21,12 +19,13 @@ function packColumns(items: MediaItem[], cols: number) {
 
 export function MosaicGrid({ items }: { items: MediaItem[] }) {
   if (!items.length) return null;
-  const columns = packColumns(items, COLS);
+  const columnsDesktop = packColumns(items, 3);
+  const columnsMobile = packColumns(items, 2);
 
   return (
     <div className="container-editorial pb-24">
       <div className="hidden md:grid grid-cols-3 gap-4">
-        {columns.map((col, ci) => (
+        {columnsDesktop.map((col, ci) => (
           <div key={ci} className="flex flex-col gap-4">
             {col.map((item) => (
               <Tile key={item.id} item={item} />
@@ -34,9 +33,13 @@ export function MosaicGrid({ items }: { items: MediaItem[] }) {
           </div>
         ))}
       </div>
-      <div className="md:hidden grid grid-cols-1 gap-4">
-        {items.map((item) => (
-          <Tile key={item.id} item={item} />
+      <div className="md:hidden grid grid-cols-2 gap-2">
+        {columnsMobile.map((col, ci) => (
+          <div key={ci} className="flex flex-col gap-2">
+            {col.map((item) => (
+              <Tile key={item.id} item={item} />
+            ))}
+          </div>
         ))}
       </div>
     </div>
@@ -56,7 +59,7 @@ function Tile({ item }: { item: MediaItem }) {
         src={item.src}
         alt={item.alt ?? item.name}
         fill
-        sizes="(min-width: 768px) 33vw, 100vw"
+        sizes="(min-width: 768px) 33vw, 50vw"
         quality={85}
         className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.03]"
       />

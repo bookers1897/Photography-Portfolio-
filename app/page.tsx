@@ -8,6 +8,7 @@ import {
 } from "@/lib/portfolio";
 import { FeaturedStrip } from "@/components/featured-strip";
 import { MosaicGrid } from "@/components/mosaic-grid";
+import { AlbumCardGrid } from "@/components/album-card-grid";
 
 const FALLBACK_HERO = {
   src: "https://images.unsplash.com/photo-1504703395950-b89145a5425b?w=2400&q=95&auto=format&fit=max",
@@ -23,6 +24,9 @@ export default async function HomePage() {
 
   const heroSrc = hero?.src ?? FALLBACK_HERO.src;
   const heroAlt = hero?.alt ?? hero?.name ?? FALLBACK_HERO.alt;
+  const focalX = hero?.focalX ?? 50;
+  const focalY = hero?.focalY ?? 50;
+  const overlay = hero?.overlay ?? 0.35;
 
   return (
     <>
@@ -38,9 +42,15 @@ export default async function HomePage() {
           quality={95}
           sizes="100vw"
           className="object-cover"
+          style={{ objectPosition: `${focalX}% ${focalY}%` }}
         />
         <div
-          className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/15 to-black/55"
+          className="absolute inset-0 bg-black"
+          style={{ opacity: overlay }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40"
           aria-hidden
         />
         <div className="relative z-10 h-full flex flex-col justify-end pb-16 md:pb-24 px-6 md:px-12 text-white">
@@ -91,6 +101,30 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {slides.length > 0 && (
+        <section className="container-editorial pb-16 md:pb-24 border-t border-[color:var(--color-border)] pt-16 md:pt-24">
+          <div className="flex items-end justify-between gap-6 flex-wrap mb-10 md:mb-14">
+            <div>
+              <p className="font-display text-xs tracking-[0.3em] opacity-70 mb-4">
+                02 — ALBUMS
+              </p>
+              <h2 className="font-display text-5xl md:text-7xl leading-[0.95] tracking-wide">
+                BROWSE
+                <br />
+                BY ALBUM.
+              </h2>
+            </div>
+            <Link
+              href="/work"
+              className="font-display tracking-[0.2em] text-sm inline-flex items-center gap-2 hover:opacity-70 transition"
+            >
+              SEE ALL <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} />
+            </Link>
+          </div>
+          <AlbumCardGrid slides={slides} />
+        </section>
+      )}
+
       {slides.length > 0 && <FeaturedStrip slides={slides} />}
 
       {mosaic.length > 0 && (
@@ -98,7 +132,7 @@ export default async function HomePage() {
           <div className="container-editorial mb-10 md:mb-14 flex items-end justify-between gap-6 flex-wrap">
             <div>
               <p className="font-display text-xs tracking-[0.3em] opacity-70 mb-4">
-                02 — SELECTED FRAMES
+                03 — SELECTED FRAMES
               </p>
               <h2 className="font-display text-5xl md:text-7xl leading-[0.95] tracking-wide">
                 EXPLORE
